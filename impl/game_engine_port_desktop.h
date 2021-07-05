@@ -3,9 +3,9 @@
 #include <memory>
 #include <curses.h>
 
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 32
-#define PIX_PER_CHAR 1
+#define SCREEN_WIDTH    (128)
+#define SCREEN_HEIGHT   (32)
+#define PIX_PER_CHAR    (1)
 
 struct Screen : public ge::Canvas {
     WINDOW* window;

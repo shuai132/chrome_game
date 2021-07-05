@@ -19,6 +19,10 @@ struct Canvas {
 
     virtual size_t drawBuffer(uint16_t x, uint16_t y, const char* buffer, size_t len) = 0;
 
+    size_t drawString(uint16_t x, uint16_t y, const char* str) {
+        return drawBuffer(x, y, str, strlen(str));
+    }
+
     size_t drawText(uint16_t x, uint16_t y, const char* format, ...) {
         va_list arg;
         va_start(arg, format);
