@@ -1,4 +1,6 @@
 #include "chrome_game.h"
+
+#include <cmath>
 #include "game_engine.hpp"
 #include "img/dragon.h"
 #include "img/tree.h"

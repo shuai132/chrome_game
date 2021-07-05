@@ -25,30 +25,7 @@ struct Screen : public ge::Canvas {
         display.drawBitmap(x, y, bitmap, w, h, color);
     }
 
-    size_t drawText(uint16_t x, uint16_t y, const char* format, ...) override {
-        display.setTextSize(1);
-        display.setTextColor(WHITE);
-        display.setCursor(x, y);
-
-        va_list arg;
-        va_start(arg, format);
-        char temp[64];
-        char* buffer = temp;
-        size_t len = vsnprintf(temp, sizeof(temp), format, arg);
-        va_end(arg);
-        if (len > sizeof(temp) - 1) {
-            buffer = new (std::nothrow) char[len + 1];
-            if (!buffer) {
-                return 0;
-            }
-            va_start(arg, format);
-            vsnprintf(buffer, len + 1, format, arg);
-            va_end(arg);
-        }
-        len = display.write((const uint8_t*) buffer, len);
-        if (buffer != temp) {
-            delete[] buffer;
-        }
-        return len;
+    size_t drawBuffer(uint16_t x, uint16_t y, const char *buffer, size_t len) override {
+        return display.write((const uint8_t*) buffer, len);
     }
 };

@@ -11,13 +11,10 @@ struct Screen : public ge::Canvas {
     WINDOW* window;
 
     Screen() {
-        window = newwin(SCREEN_HEIGHT, SCREEN_WIDTH, 0, 0);
         initscr();
         raw();
-        keypad(stdscr, TRUE);
         noecho();
         curs_set(0);
-        box(window, SCREEN_HEIGHT, SCREEN_WIDTH);
     }
 
     void onClear() override {
@@ -38,26 +35,7 @@ struct Screen : public ge::Canvas {
         }
     }
 
-    size_t drawText(uint16_t x, uint16_t y, const char* format, ...) override {
-        va_list arg;
-        va_start(arg, format);
-        char temp[64];
-        char* buffer = temp;
-        size_t len = vsnprintf(temp, sizeof(temp), format, arg);
-        va_end(arg);
-        if (len > sizeof(temp) - 1) {
-            buffer = new (std::nothrow) char[len + 1];
-            if (!buffer) {
-                return 0;
-            }
-            va_start(arg, format);
-            vsnprintf(buffer, len + 1, format, arg);
-            va_end(arg);
-        }
-        mvprintw(y, x, buffer, len);
-        if (buffer != temp) {
-            delete[] buffer;
-        }
-        return len;
+    size_t drawBuffer(uint16_t x, uint16_t y, const char *buffer, size_t len) override {
+        return mvprintw(y, x, buffer, len);
     }
 };
