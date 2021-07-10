@@ -4,6 +4,7 @@
 #include <functional>
 #include <algorithm>
 #include <cstdint>
+#include <cassert>
 #include "game_engine_port.h"
 
 namespace ge {
@@ -114,7 +115,8 @@ public:
 
 class Director : noncopyable {
 public:
-    void start(uint16_t fps = 15) {
+    void start(uint16_t fps) {
+        assert(fps != 0);
         _fps = fps;
         _intervalUs = 1000000 / _fps;
         _running = true;

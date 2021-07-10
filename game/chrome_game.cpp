@@ -5,15 +5,11 @@
 #include "game_engine.hpp"
 #include "img/dragon.h"
 #include "img/tree.h"
-
-#ifdef ARDUINO
-#include "OLED.h"
-#include "impl/game_engine_port_arduino.h"
-#else
-#include "impl/game_engine_port_desktop.h"
-#endif
+#include "game_engine_port.h"
 
 using namespace ge;
+
+static ScreenConfig* s = nullptr;
 
 class Dragon : public Spirit {
 public:
@@ -30,8 +26,8 @@ public:
         auto shouldMovePix = _speed * deltaMs;
         _speed -= deltaMs * acceleration;
         pos.y -= shouldMovePix;
-        if (pos.y >= SCREEN_HEIGHT - bitmap.height) {
-            pos.y = SCREEN_HEIGHT - bitmap.height;
+        if (pos.y >= s->SCREEN_HEIGHT - bitmap.height) {
+            pos.y = s->SCREEN_HEIGHT - bitmap.height;
             _onGround = true;
         }
     }
@@ -43,7 +39,7 @@ public:
     }
     void reset() {
         pos.x = 10;
-        pos.y = SCREEN_HEIGHT - dragon_height;
+        pos.y = s->SCREEN_HEIGHT - dragon_height;
     }
 
 public:
@@ -90,7 +86,7 @@ public:
         Spirit::update(deltaMs);
         pos.x -= _speed * deltaMs / 1000;
         if (pos.x + bitmap.width < 0) {
-            pos.x = SCREEN_WIDTH - bitmap.width;
+            pos.x = s->SCREEN_WIDTH - bitmap.width;
         }
     }
 
@@ -101,8 +97,8 @@ private:
 class Score : public Node {
 public:
     void onDraw(Canvas *canvas) override {
-        canvas->drawText(SCREEN_WIDTH - PIX_PER_CHAR*5, 0, "%05d", (int)score);
-        canvas->drawText(SCREEN_WIDTH - PIX_PER_CHAR*(5+7), 0, "FPS:%d", (int)ceil(realFps));
+        canvas->drawText(s->SCREEN_WIDTH - s->PER_CHAR_WIDTH*5, 0, "%05d", (int)score);
+        canvas->drawText(s->SCREEN_WIDTH - s->PER_CHAR_WIDTH*(5+7), 0, "FPS:%d", (int)round((double)realFps));
     }
     void update(float deltaMs) override {
         realFps = 1000 / deltaMs;
@@ -133,7 +129,7 @@ public:
     void onDraw(Canvas *canvas) override {
         if (isGameOver) {
             const std::string gameOver("GAME OVER");
-            canvas->drawString((SCREEN_WIDTH - PIX_PER_CHAR*(gameOver.length())) / 2, SCREEN_HEIGHT / 2, gameOver.c_str());
+            canvas->drawString((s->SCREEN_WIDTH - s->PER_CHAR_WIDTH*(gameOver.length())) / 2, s->SCREEN_HEIGHT / 2, gameOver.c_str());
         }
     }
 
@@ -199,8 +195,8 @@ private:
         _dragon->reset();
         for (int i = 0; i < treeNum; ++i) {
             const auto& tree = _trees[i];
-            tree->pos.x = SCREEN_WIDTH / treeNum * (i + 1);
-            tree->pos.y = SCREEN_HEIGHT - tree->bitmap.height;
+            tree->pos.x = s->SCREEN_WIDTH / treeNum * (i + 1);
+            tree->pos.y = s->SCREEN_HEIGHT - tree->bitmap.height;
         }
     }
 
@@ -212,9 +208,10 @@ private:
     GameLogic* _gameLogic = new GameLogic(_dragon, &_trees);
 };
 
-void start_game() {
+void start_game(ScreenConfig* screen) {
+    s = screen;
     auto game = new Director();
     game->scene = new GameScene();
-    game->scene->canvas = new Screen();
-    game->start(120);
+    game->scene->canvas = s->canvas;
+    game->start(s->fps);
 }

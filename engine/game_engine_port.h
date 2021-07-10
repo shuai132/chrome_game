@@ -5,6 +5,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <memory>
+#include <cstring>
 
 namespace ge {
 
@@ -12,8 +13,6 @@ struct Canvas {
     virtual void onClear() = 0;
 
     virtual void onDraw() = 0;
-
-    virtual void* native() { return nullptr; }
 
     virtual void drawBitmap(uint16_t x, uint16_t y, const uint8_t bitmap[], uint16_t w, uint16_t h, uint16_t color) = 0;
 
