@@ -169,7 +169,7 @@ public:
             _score->score += 100;
         };
 
-        restart();
+        resetTree();
     }
 
 protected:
@@ -178,10 +178,10 @@ protected:
             if (checkButton()) {
                 restart();
             }
-            return;
+        } else {
+            _score->score += deltaMs / 100; // one score per 100ms
         }
         Scene::update(deltaMs);
-        _score->score += deltaMs / 100; // one score per 100ms
 
         if (checkButton()) {
             _dragon->tap();
@@ -193,6 +193,9 @@ private:
         _gameLogic->isGameOver = false;
         _score->score = 0;
         _dragon->reset();
+    }
+
+    void resetTree() {
         for (int i = 0; i < treeNum; ++i) {
             const auto& tree = _trees[i];
             tree->pos.x = s->SCREEN_WIDTH / treeNum * (i + 1);
