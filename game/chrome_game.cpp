@@ -64,7 +64,7 @@ private:
 private:
     // 跳跃的物理模拟参数 时间和高度尺度变换
     // H = 1/2 * a * t^2
-    const int H = 20;           // 最高上升到像素/pix
+    const int H = 25;           // 最高上升到像素/pix
     const float expectMs = 500; // 跳跃过程持续时间/ms
     const float halfMs = expectMs / 2;
     const double acceleration = H * 2 / (halfMs * halfMs);
@@ -91,7 +91,7 @@ public:
     }
 
 private:
-    int _speed = 50; // pix per second
+    int _speed = 60; // pix per second
 };
 
 class Score : public Node {
@@ -110,14 +110,14 @@ public:
 class GameLogic : public Node {
 public:
     explicit GameLogic(Dragon* dragon, std::vector<Tree*>* trees)
-        : _dragon(dragon), _trees(trees) {}
+            : _dragon(dragon), _trees(trees) {}
 
     void update(float deltaMs) override {
         Node::update(deltaMs);
         for (const auto& tree : *_trees) {
             if (abs(_dragon->pos.x - tree->pos.x) < dragon_width * 0.2f) {
                 // 贴近的时候判断高度 要大于一定数值
-                if (_dragon->pos.y + dragon_height > tree->pos.y + tree2_height * 0.2f) {
+                if (_dragon->pos.y + dragon_height > tree->pos.y) {
                     onGameOver();
                 } else {
                     // will trigger more times
@@ -161,6 +161,11 @@ public:
 
         for (int i = 0; i < treeNum; ++i) {
             auto tree = new Tree;
+            if ((i+1) % 2 == 0) {
+                tree->bitmap.data = tree1_data;
+                tree->bitmap.width = tree1_width;
+                tree->bitmap.height = tree1_height;
+            }
             addChild(tree);
             _trees.push_back(tree);
         }

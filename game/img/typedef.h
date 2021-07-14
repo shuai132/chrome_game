@@ -1,5 +1,5 @@
 #pragma once
 
-#ifndef ARDUINO
+#ifndef PROGMEM
 #define PROGMEM
 #endif
