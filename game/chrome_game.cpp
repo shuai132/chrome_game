@@ -97,8 +97,8 @@ private:
 class Score : public Node {
 public:
     void onDraw(Canvas *canvas) override {
-        canvas->drawText(s->SCREEN_WIDTH - s->PER_CHAR_WIDTH*5, 0, "%05d", (int)score);
-        canvas->drawText(s->SCREEN_WIDTH - s->PER_CHAR_WIDTH*(5+7), 0, "FPS:%d", (int)round((double)realFps));
+        canvas->drawText(s->SCREEN_WIDTH - s->PER_CHAR_WIDTH*6, 0, "FPS:%d", (int)round((double)realFps));
+        canvas->drawText(s->SCREEN_WIDTH - s->PER_CHAR_WIDTH*5, 8, "%05d", (int)score);
     }
     void update(float deltaMs) override {
         realFps = 1000 / deltaMs;
