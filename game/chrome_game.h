@@ -3,3 +3,5 @@
 #include "chrome_game_port.h"
 
 void start_game(ScreenConfig* screen);
+
+void stop_game();

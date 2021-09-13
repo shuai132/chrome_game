@@ -10,6 +10,7 @@
 using namespace ge;
 
 static ScreenConfig* s = nullptr;
+static Director* game;
 
 class Dragon : public Spirit {
 public:
@@ -218,8 +219,15 @@ private:
 
 void start_game(ScreenConfig* screen) {
     s = screen;
-    auto game = new Director();
+    game = new Director();
     game->scene = new GameScene();
     game->scene->canvas = s->canvas;
     game->start(s->fps);
+}
+
+void stop_game() {
+    if (game == nullptr) return;
+    game->stop();
+    delete game;
+    game = nullptr;
 }
