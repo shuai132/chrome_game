@@ -217,17 +217,10 @@ private:
     GameLogic* _gameLogic = new GameLogic(_dragon, &_trees);
 };
 
-void start_game(ScreenConfig* screen) {
+void* chrome_game_init(ScreenConfig* screen) {
     s = screen;
     game = new Director();
     game->scene = new GameScene();
-    game->scene->canvas = s->canvas;
-    game->start(s->fps);
-}
-
-void stop_game() {
-    if (game == nullptr) return;
-    game->stop();
-    delete game;
-    game = nullptr;
+    game->scene->canvas = screen->canvas;
+    return game;
 }

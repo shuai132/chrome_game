@@ -122,12 +122,25 @@ public:
         _running = true;
         _lastStartTime = nowUs();
         while (_running) {
+            if (_paused) {
+                delayUs(300000);
+                continue;
+            };
             loop();
         }
     }
 
     void stop() {
         _running = false;
+    }
+
+    void pause() {
+        _paused = true;
+    }
+
+    void resume() {
+        _paused = false;
+        _lastStartTime = nowUs();
     }
 
 private:
@@ -149,6 +162,7 @@ public:
 
 private:
     bool _running = false;
+    bool _paused = false;
     uint16_t _fps;
     unsigned long _intervalUs;
     unsigned long _lastStartTime;
