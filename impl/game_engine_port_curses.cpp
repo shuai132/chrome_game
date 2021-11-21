@@ -1,4 +1,7 @@
 #include "game_engine_port_desktop.h"
+
+#include <curses.h>
+#include <memory>
 #include <thread>
 
 namespace ge {
@@ -36,4 +39,38 @@ bool checkButton() {
     return isClick;
 }
 
+}
+
+Screen::Screen()
+{
+    initscr();
+    raw();
+    noecho();
+    curs_set(0);
+}
+
+void Screen::onClear()
+{
+    clear();
+}
+
+void Screen::onDraw()
+{
+    refresh();
+}
+
+void Screen::drawBitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_t width, uint16_t height, uint16_t color)
+{
+    const int bytesPerCol = (width-1)/8+1;
+    for(int h = 0; h < height; h++) {
+        for(int w = 0; w < width; w++) {
+            auto pixel = bitmap[h*bytesPerCol + w/8] & (0b10000000 >> (w%8));
+            mvprintw(y+h, x+w, pixel == 0 ? " " : "*");
+        }
+    }
+}
+
+size_t Screen::drawBuffer(uint16_t x, uint16_t y, const char *buffer, size_t len)
+{
+    return mvprintw(y, x, buffer, len);
 }
