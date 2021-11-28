@@ -11,11 +11,15 @@
 #include <GL/glu.h>
 #endif
 
+#include "Adafruit_GFX.h"
+
 #define POINT_SIZE 10
 #define WINDOW_WIDTH (128)
 #define WINDOW_HEIGHT (64)
 #define WINDOW_WIDTH_PIX (WINDOW_WIDTH * POINT_SIZE)
 #define WINDOW_HEIGHT_PIX (WINDOW_HEIGHT * POINT_SIZE)
+
+static bool s_pressed = false;
 
 namespace ge {
 
@@ -36,17 +40,29 @@ void delayMs(unsigned int us) {
 }
 
 bool checkButton() {
-    return false;
+    return s_pressed;
 }
 
 }
 
-struct UserData {
-    GLFWwindow* window;
+struct Adafruit_GFX_OpenGL: public Adafruit_GFX {
     std::vector<uint8_t> frameBuffer;
-    UserData() {
+
+    Adafruit_GFX_OpenGL(int16_t w, int16_t h): Adafruit_GFX(w, h) {
         frameBuffer.resize(WINDOW_WIDTH* WINDOW_HEIGHT);
     }
+
+    void drawPixel(int16_t x, int16_t y, uint16_t color) override {
+        frameBuffer[y*WINDOW_WIDTH + x] = color ? 0xff : 0;
+    }
+};
+
+struct UserData {
+    UserData() {
+        oled = std::unique_ptr<Adafruit_GFX_OpenGL>(new Adafruit_GFX_OpenGL(WINDOW_WIDTH, WINDOW_HEIGHT));
+    }
+    GLFWwindow* window{};
+    std::unique_ptr<Adafruit_GFX_OpenGL> oled;
 };
 
 static GLFWwindow* initGLFW()
@@ -63,6 +79,28 @@ static GLFWwindow* initGLFW()
 
     glfwSetWindowSizeLimits(window, 0, 0, WINDOW_WIDTH_PIX, WINDOW_HEIGHT_PIX);
 
+    glfwMakeContextCurrent(window);
+    const auto scale = 1.f;
+    glScaled(scale*2/WINDOW_WIDTH,-scale*2/WINDOW_HEIGHT,1);
+
+    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mode) {
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+            glfwSetWindowShouldClose(window, GL_TRUE);
+            return;
+        }
+        if (key == GLFW_KEY_SPACE) {
+            switch (action) {
+                case GLFW_PRESS:
+                    s_pressed = true;
+                    break;
+                case GLFW_RELEASE:
+                    s_pressed = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+    });
     return window;
 }
 
@@ -74,6 +112,7 @@ Screen::Screen()
     this->userData_ = userData;
     userData->window = window;
 }
+
 void Screen::onDraw()
 {
     auto userData = static_cast<UserData*>(userData_);
@@ -83,21 +122,20 @@ void Screen::onDraw()
         exit(0);
     }
 
-    glfwMakeContextCurrent(window);
 //    gluOrtho2D(-WINDOW_WIDTH, WINDOW_WIDTH, -WINDOW_HEIGHT, WINDOW_HEIGHT);
     glClear(GL_COLOR_BUFFER_BIT);
     glPointSize(POINT_SIZE);
     glBegin(GL_POINTS);
-    auto buf = userData->frameBuffer.data();
+    auto buf = userData->oled->frameBuffer.data();
+//    glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
     for (int h = 0; h < WINDOW_HEIGHT; h++) {
         for (int w = 0; w < WINDOW_WIDTH; w++) {
             auto flag = buf[h * WINDOW_WIDTH + w];
             if (flag) {
-                glVertex2f((float)w/WINDOW_WIDTH, -(float)h/WINDOW_HEIGHT);
+                glVertex2f(w - WINDOW_WIDTH/2, h - (WINDOW_HEIGHT-0.9)/2);
             }
         }
     }
-    glVertex2i(0, 0);
     glEnd();
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -105,38 +143,31 @@ void Screen::onDraw()
 
 size_t Screen::drawBuffer(uint16_t x, uint16_t y, const char *buffer, size_t len)
 {
-//        return mvprintw(y, x, buffer, len);
-    return 0;
+    auto userData = static_cast<UserData*>(userData_);
+    auto& oled = userData->oled;
+    oled->setCursor(x, y);
+    oled->setTextColor(1);
+    return oled->write((const uint8_t*) buffer, len);
 }
-
 
 void Screen::drawBitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_t width, uint16_t height, uint16_t color)
 {
-    const int bytesPerCol = (width-1)/8+1;
-    for(int h = 0; h < height; h++) {
-        for(int w = 0; w < width; w++) {
-            auto pixel = bitmap[h*bytesPerCol + w/8] & (0b10000000 >> (w%8));
-            auto userData = static_cast<UserData*>(userData_);
-            if (pixel) {
-                userData->frameBuffer[WINDOW_WIDTH*(y+h) + x+w] = 1;
-            }
-        }
-    }
+    auto userData = static_cast<UserData*>(userData_);
+    userData->oled->drawBitmap(x, y, bitmap, width, height, color);
 }
 
 void Screen::onClear()
 {
     auto userData = static_cast<UserData*>(userData_);
-    for (auto &item : userData->frameBuffer) {
+    for (auto &item : userData->oled->frameBuffer) {
         item = 0;
     }
 }
 
 Screen::~Screen()
 {
-    // Cleanup
-    auto window = (GLFWwindow*)userData_;
-    glfwDestroyWindow(window);
+    auto userData = static_cast<UserData*>(userData_);
+    glfwDestroyWindow(userData->window);
     glfwTerminate();
     delete static_cast<UserData*>(userData_);
 }

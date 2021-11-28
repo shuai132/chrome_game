@@ -5,8 +5,8 @@
 int main() {
     ScreenConfig c{};
     c.SCREEN_WIDTH = 128;
-    c.SCREEN_HEIGHT = 32;
-    c.PER_CHAR_WIDTH = 1;
+    c.SCREEN_HEIGHT = 64;
+    c.PER_CHAR_WIDTH = 6;
     c.canvas = new Screen;
     auto game = static_cast<ge::Director *>(chrome_game_init(&c));
     game->start(120);
